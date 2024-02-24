@@ -1,74 +1,251 @@
-require('dotenv').config();
-
+const e = require('express');
 const express = require('express');
-const sqlite3 = require('sqlite3');
+const Sequelize = require('sequelize');
 const app = express();
 
-// connect to database
-const db = new sqlite3.Database('./Database/shopBatmintan.sqlite');
 app.use(express.json());
 
-db.run(`CREATE TABLE IF NOT EXISTS products(
-    product_id INTEGER PRIMARY KEY,
-    product_code TEXT , product_name TEXT,
-    category_id INTEGER , unit INTEGER , price INTEGER 
-)`)
-
-
-app.get("/products", (req, res) => {
-    db.all('SELECT * FROM products', (err, row) => {
-        if (err) res.status(500).send(err);
-        else res.json(row)
-    });
+const sequelize = new Sequelize('database', 'username', 'password', {
+    host: 'localhost',
+    dialect: 'sqlite',
+    storage: './Database/shopBatmintan.sqlite'
+});
+const shopBatmintan = sequelize.define('products', { 
+    products_id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    products_code: { 
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    products_name: { 
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    catagory_id:{
+        type: Sequelize.INTEGER,
+        foreignKey: false
+    },
+    unit:{
+        type: Sequelize.INTEGER,
+        allowNull: false
+    
+    },
+    price:{
+        type: Sequelize.INTEGER,
+        allowNull: false
+}
+    
+}, {
+    timestamps: false
+});
+const orders = sequelize.define('orders', {
+    orders_id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    }, 
+    products_id:{
+        type: Sequelize.STRING,
+        foreignKey: false
+    },
+    user_id:{
+        type: Sequelize.STRING,
+        foreignKey: false
+    }
+    
+});
+const categories = sequelize.define('categories', { 
+    category_id: { 
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    category_name: {
+        type: Sequelize.STRING,
+        allowNull: false
+    }
 });
 
-app.get("/products/:id", (req, res) => {
-    const products = req.params
-    db.get('SELECT * FROM products WHERE product_id = ?', products.id, (err, row) => {
-        if (err) res.status(500).send(err);
-        else {
-            if (!row) res.status(404).send("products not found!!");
-            else res.json(row)
+sequelize.sync();
+app.post('/products', async (req, res) => {
+    try {
+        const newProduct = await shopBatmintan.create(req.body);
+        res.status(201).json(newProduct);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/products', async (req, res) => {
+    try {
+        const allProducts = await shopBatmintan.findAll();
+        res.json(allProducts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+app.get('/products/:id', async (req, res) => {
+    try {
+        const product = await shopBatmintan.findByPk(req.params.id);
+        if (!product) {
+            res.status(404).json({ error: 'ไม่พบสินค้า' });
+        } else {
+            res.json(product);
         }
-    });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-app.post("/products", (req, res) => {
-    const products = req.body
-    db.run('INSERT INTO products (product_code ,category_id,product_name ,unit ,price) VALUES (?,?,?,?,?)',
-     products.product_code ,products.category_id, products.product_name , products.unit, products.price, 
-     function(err) {
-        if (err) res.status(500).send(err);
-        else {
-            req.body.products_id = this.lastID;
-            res.send(products);
+app.put('/products/:id', async (req, res) => {
+    try {
+        const product = await shopBatmintan.findByPk(req.params.id);
+        if (!product) {
+            res.status(404).json({ error: 'ไม่พบสินค้า' });
+        } else {
+            await product.update(req.body);
+            res.json(product);
         }
-    });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-app.put("/products/:id", (req, res) => {
-    const products = req.body;
-    db.run('UPDATE products SET product_code = ? ,category_id = ?,product_name = ?,unit = ? ,price = ? WHERE product_id = ? ' ,
-    products.product_code,products.category_id,products.product_name, products.unit ,products.price, req.params.id, 
-    function(err) {
-        if (err) res.status(500).send(err);
-        else res.send(products);
-    });
-});
-
-app.delete("/products/:id", (req, res) => {
-    db.run('DELETE FROM products WHERE product_id = ?', req.params.id, function(err) {
-        if(err) { 
-            res.status(500).send(err);
+app.delete('/products/:id', async (req, res) => {
+    try {
+        const product = await shopBatmintan.findByPk(req.params.id);
+        if (!product) {
+            res.status(404).json({ error: 'ไม่พบสินค้า' });
+        } else {
+            await product.destroy();
+            res.status(204).end();
         }
-        else {
-            res.send("Delete Pass ");
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+sequelize.sync();
+app.post('/orders', async (req, res) => {
+    try {
+        const newOrder = await orders.create(req.body);
+        res.status(201).json(newOrder);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/orders', async (req, res) => {
+    try {
+        const allOrders = await orders.findAll();
+        res.json(allOrders);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/orders/:id', async (req, res) => {
+    try {
+        const order = await orders.findByPk(req.params.id);
+        if (!order) {
+            res.status(404).json({ error: 'ไม่พบคำสั่งซื้อ' });
+        } else {
+            res.json(order);
         }
-    });
-
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server started at http://localhost:${PORT}`);
+app.put('/orders/:id', async (req, res) => {
+    try {
+        const order = await orders.findByPk(req.params.id);
+        if (!order) {
+            res.status(404).json({ error: 'ไม่พบคำสั่งซื้อ' });
+        } else {
+            await order.update(req.body);
+            res.json(order);
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
+
+app.delete('/orders/:id', async (req, res) => {
+    try {
+        const order = await orders.findByPk(req.params.id);
+        if (!order) {
+            res.status(404).json({ error: 'ไม่พบคำสั่งซื้อ' });
+        } else {
+            await order.destroy();
+            res.status(204).end();
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/catagories', async (req, res) => {
+    try {
+
+        const newcatagories = await catagories.create(req.body);
+        res.status(201).json(newcatagories);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/categories', async (req, res) => {
+    try {
+        const allCategories = await categories.findAll();
+        res.json(allCategories);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/catagories/:id', async (req, res) => {
+    try {
+        const catagories = await catagories.findByPk(req.params.id);
+        if (!catagories) {
+            res.status(404).json({ error: 'ไม่พบหมวดหมู่' });
+        } else {
+            res.json(catagories);
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/catagories/:id', async (req, res) => {
+    try {
+        const catagories = await catagories.findByPk(req.params.id);
+        if (!catagories) {
+            res.status(404).json({ error: 'ไม่พบหมวดหมู่' });
+        } else {
+            await catagories.update(req.body);
+            res.json(catagories);
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/catagories/:id', async (req, res) => {
+    try {
+        const catagories = await catagories.findByPk(req.params.id);
+        if (!catagories) {
+            res.status(404).json({ error: 'ไม่พบหมวดหมู่' });
+        } else {
+            await catagories.destroy();
+            res.status(204).end();
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server running on port ${port}`));
