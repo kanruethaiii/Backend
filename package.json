@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "format": "prettier --write *.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon serverBack.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "sequelize": "^6.37.1",
+    "sqlite3": "5.0.2"
   }
 }
