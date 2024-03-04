@@ -14,7 +14,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
     host: 'localhost',
     dialect: 'sqlite',
     storage: './Database/shopBatmintan.sqlite',
-})
+});
 
 const Products = sequelize.define('products', {
     product_id: {
