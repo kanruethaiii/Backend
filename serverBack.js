@@ -401,5 +401,5 @@ app.delete('/categories/:id', async (req, res) => {
 /////////// categories /////////////
 
 
-app.listen(5600, () => { console.log(`Listening on port ${5600}`) })
+app.listen(5700, () => { console.log(`Listening on port ${5700}`) })
 
