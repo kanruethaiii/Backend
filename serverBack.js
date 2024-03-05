@@ -6,7 +6,7 @@ const express = require('express');
 const app = express();
 
 // connect to database
-//const db = new sqlite3.Database('./Database/shopBatmintan.sqlite');
+// const db = new sqlite3.Database('./Database/shopBatmintan.sqlite');
 
 app.use(express.json());
 
@@ -14,7 +14,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
     host: 'localhost',
     dialect: 'sqlite',
     storage: './Database/shopBatmintan.sqlite',
-});
+})
 
 const Products = sequelize.define('products', {
     product_id: {
@@ -91,7 +91,7 @@ const Users = sequelize.define('users', {
         type: Sequelize.INTEGER,
         allowNull: false
     }
-});
+})
 
 sequelize.sync();
 
@@ -172,15 +172,15 @@ app.get('/users/', (req, res) => {
     Users.findAll()
         .then((users) => {
 
-            res.json(users);
+            res.json(users)
 
         })
         .catch((err) => {
 
-            res.status(500).send(err);
+            res.status(500).send(err)
 
         });
-});
+})
 
 app.get('/users/:id', (req, res) => {
 
@@ -188,16 +188,16 @@ app.get('/users/:id', (req, res) => {
 
         if (!user) {
 
-            res.status(404).send("User not found");
+            res.status(404).send("User not found")
 
         } else {
 
-            res.json(user);
+            res.json(user)
 
         }
     }).catch((err) => {
 
-        res.status(500).send(err);
+        res.status(500).send(err)
 
     });
 });
@@ -206,11 +206,11 @@ app.post('/users', (req, res) => {
 
     Users.create(req.body).then((user) => {
 
-        res.send(user);
+        res.send(user)
 
     }).catch((err) => {
 
-        res.status(500).send(err);
+        res.status(500).send(err)
 
     });
 })
@@ -221,22 +221,22 @@ app.put('/users/:id', (req, res) => {
 
         if (!user) {
 
-            res.status(404).send("User not found");
+            res.status(404).send("User not found")
 
         } else {
             user.update(req.body).then(() => {
 
-                res.send(user);
+                res.send(user)
 
             }).catch((err) => {
 
-                res.status(500).send(err);
+                res.status(500).send(err)
 
             });
         }
     }).catch((err) => {
 
-        res.status(500).send(err);
+        res.status(500).send(err)
 
     });
 });
@@ -247,23 +247,23 @@ app.delete('/users/:id', (req, res) => {
 
         if (!user) {
 
-            res.status(404).send("User not found");
+            res.status(404).send("User not found")
 
         } else {
 
             user.destroy().then(() => {
 
-                res.send({});
+                res.send({})
 
             }).catch((err) => {
 
-                res.status(500).send(err);
+                res.status(500).send(err)
 
             });
         }
     }).catch((err) => {
 
-        res.status(500).send(err);
+        res.status(500).send(err)
 
     });
 });
@@ -401,5 +401,4 @@ app.delete('/categories/:id', async (req, res) => {
 /////////// categories /////////////
 
 
-app.listen(5700, () => { console.log(`Listening on port ${5700}`) });
-
+app.listen(3000, () => { console.log(`Listening on port ${3000}`) })
